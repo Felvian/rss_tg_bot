@@ -11,7 +11,7 @@ log.addHandler(handler)
 async def tick():
     log.info("TICK %s", datetime.now())
 
-@crontab("*/10 * * * * *", start=False)   # каждые 10 секунд
+@crontab("* * * * * */10", start=False)   # каждые 10 секунд
 async def every_10s():
     try:
         await tick()
