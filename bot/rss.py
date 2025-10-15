@@ -30,7 +30,11 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
         if entry.id == last_id:
             break
         # Atom-лента: контент лежит в entry.content
-        content = entry.get('content', '')
+        content_raw = entry.get('content', entry.get('summary', ''))
+        if isinstance(content_raw, list) and content_raw:
+            content = content_raw[0].get('value', '')
+        else:
+            content = content_raw
         posts.append({
             'title': entry.title,
             'content': clean_html(content)[:500] + '…',
