@@ -12,6 +12,7 @@ def extract_media(content: str) -> List[str]:
 
 def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
     feed = feedparser.parse(feed_url)
+    print(feed)
     posts = []
     for entry in reversed(feed.entries):
         if entry.id == last_id:
