@@ -9,6 +9,7 @@ from db import add_feed, remove_feed, list_feeds
 from rss import get_new_posts
 from download import download_file, delete_file
 from logger import get_logger   # если модуль лежит рядом
+from test_cron import start as start_test_cron
 
 log = get_logger("cron")
 
@@ -128,13 +129,14 @@ async def job():
             save_last_id(url, post['url'])
 
 async def main():
-    job.start()
-    log.info("bot started, cron active")
+    start_test_cron()          # <— запустим тестовый cron
+    job.start()                # ваш основной cron
+    log.info("bot + test-cron started")
     try:
         await dp.start_polling(bot)
     finally:
-        job.stop()    
-    
+        job.stop()
+        every_10s.stop()
 
 if __name__ == '__main__':
     asyncio.run(main())
