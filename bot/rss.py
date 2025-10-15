@@ -31,6 +31,7 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
 
     # Идём от новых к старым (как в ленте)
     for entry in feed.entries:
+        entry_id_clean = entry.id.strip()
         if last_id_clean and entry_id_clean == last_id_clean:
             break  # достигли последнего отправленного — остальное не нужно
         # Извлекаем данные
