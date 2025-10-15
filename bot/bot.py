@@ -80,7 +80,8 @@ async def add(m: types.Message):
     fid = add_feed(username)
     await m.answer(f"✅ Канал `@{username}` добавлен. ID: `{fid}`", parse_mode='Markdown')
     url = build_url(username)
-    posts = get_new_posts(url, None)          # None = берём всю ленту
+    posts = get_new_posts(url, None)
+    print(posts)          # None = берём всю ленту
     if posts:
         last = posts[-1]                      # самый свежий
         await send_post(last)                 # отправляем
