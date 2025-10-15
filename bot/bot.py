@@ -38,29 +38,35 @@ async def send_post(post: dict):
 
     files = []
     try:
-        for url in media_urls:
+        for idx, url in enumerate(media_urls):
             path = await download_file(url)
             if not path:
                 continue
-            inp = FSInputFile(path)
+            file = FSInputFile(path)
+
+            # выбираем нужный класс
             if url.endswith(('.mp4', '.webm', '.mov')):
-                files.append(InputMediaVideo(media=inp))
+                cls = InputMediaVideo
             elif url.endswith('.gif'):
-                files.append(InputMediaDocument(media=inp))
+                cls = InputMediaDocument
             else:
-                files.append(InputMediaPhoto(media=inp))
+                cls = InputMediaPhoto
+
+            # ПЕРВЫЙ объект несёт caption и parse_mode
+            if idx == 0:
+                files.append(cls(media=file, caption=text, parse_mode='HTML'))
+            else:
+                files.append(cls(media=file))   # без caption/parse_mode
 
         if not files:
             await bot.send_message(CHANNEL_ID, text, parse_mode='HTML')
             return
 
-        files[0].caption = text
-        files[0].parse_mode = 'HTML'
         await bot.send_media_group(CHANNEL_ID, files)
     finally:
         for f in files:
             delete_file(f.media.path)
-
+            
 @dp.message(Command('start'))
 async def start(m: types.Message):
     await m.answer(
