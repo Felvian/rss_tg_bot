@@ -66,7 +66,7 @@ async def send_post(post: dict):
     finally:
         for f in files:
             delete_file(f.media.path)
-            
+
 @dp.message(Command('start'))
 async def start(m: types.Message):
     await m.answer(
@@ -116,6 +116,7 @@ async def rm(m: types.Message):
 
 @crontab('*/5 * * * *')
 def job():
+    print('задача выполняется')
     for fid, username in list_feeds().items():
         url = build_url(username)
         last_id = get_last_id(url)
