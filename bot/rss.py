@@ -28,7 +28,7 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
     posts = []
     found_last = False
     last_id_clean = last_id.strip() if last_id else None
-
+    print(last_id_clean)
     # Идём от новых к старым (как в ленте)
     for entry in feed.entries:
         entry_id_clean = entry.id.strip()

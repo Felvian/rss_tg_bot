@@ -28,6 +28,7 @@ async def periodic_job():
                 log.info(f"  ID={fid}, username={username}")
                 url = build_url(username)
                 last_id = get_last_id(url)
+                log.info(f"last id {last_id}")
                 posts = get_new_posts(url, last_id)  # уже в правильном порядке: новые первыми
                 log.info(f"Новых постов для {username}: {len(posts)}")
                 for post in posts:
