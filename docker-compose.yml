@@ -6,3 +6,14 @@ services:
     volumes:
       - ./data:/app/data
     restart: unless-stopped
+    depends_on:
+      - rss-bridge
+    # Бот будет обращаться к bridge по имени сервиса "rss-bridge"
+
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    restart: unless-stopped
+    # НЕ пробрасываем порт наружу — только внутренняя сеть Docker
+    volumes:
+      - ./rss-bridge-cache:/app/cache  # кэш между перезапусками
