@@ -27,10 +27,11 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
     feed = feedparser.parse(feed_url)
     posts = []
     found_last = False
+    last_id_clean = last_id.strip() if last_id else None
 
     # Идём от новых к старым (как в ленте)
     for entry in feed.entries:
-        if entry.id == last_id:
+        if last_id_clean and entry_id_clean == last_id_clean:
             break  # достигли последнего отправленного — остальное не нужно
         # Извлекаем данные
         content_raw = entry.get('content', entry.get('summary', ''))
@@ -41,7 +42,7 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
         posts.append({
             'title': entry.title,
             'content': clean_html(content)[:500] + '…',
-            'url': entry.id,
+            'url': entry_id_clean,
             'media': extract_media(content)
         })
     # Теперь posts = [новый, ..., последний_новый_после_last_id]

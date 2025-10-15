@@ -39,13 +39,14 @@ async def periodic_job():
 
 def get_last_id(url: str) -> str | None:
     try:
-        return json.load(open(LAST_FILE)).get(url)
+        raw = json.load(open(LAST_FILE)).get(url)
+        return raw.strip() if raw else None
     except Exception:
         return None
 
 def save_last_id(url: str, post_id: str):
     data = json.load(open(LAST_FILE)) if os.path.exists(LAST_FILE) else {}
-    data[url] = post_id
+    data[url] = post_id.strip()
     os.makedirs(os.path.dirname(LAST_FILE), exist_ok=True)
     json.dump(data, open(LAST_FILE, 'w'))
 
