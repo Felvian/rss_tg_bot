@@ -29,6 +29,7 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
     found_last = False
     last_id_clean = last_id.strip() if last_id else None
     print(last_id_clean)
+    print(feed)
     # Идём от новых к старым (как в ленте)
     for entry in feed.entries:
         entry_id_clean = entry.id.strip()
@@ -36,6 +37,7 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
             break  # достигли последнего отправленного — остальное не нужно
         # Извлекаем данные
         content_raw = entry.get('content', entry.get('summary', ''))
+        print(content_raw)
         if isinstance(content_raw, list) and content_raw:
             content = content_raw[0].get('value', '')
         else:
