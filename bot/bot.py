@@ -22,15 +22,21 @@ async def periodic_job():
     while True:
         try:
             log.info("Запуск проверки RSS-лент...")
+            feeds = list_feeds()
+            log.info(f"Найдено каналов: {len(feeds)}")
             for fid, username in list_feeds().items():
+                log.info(f"  ID={fid}, username={username}")
                 url = build_url(username)
                 last_id = get_last_id(url)
                 posts = get_new_posts(url, last_id)  # уже в правильном порядке: новые первыми
+                log.info(f"Новых постов для {username}: {len(posts)}")
                 for post in posts:
                     await send_post(post)
                     await asyncio.sleep(1.2)
                 if posts:
+                    log.info(f"Свежий пост: {posts[0]['title'][:50]}...")
                     save_last_id(url, posts[0]['url'])  # самый свежий — первый в списке
+                    log.info(f"last_id для {username}: {repr(last_id)}")
             log.info("Проверка завершена.")
         except Exception as e:
             log.exception("Ошибка в периодической задаче: %s", e)
@@ -54,6 +60,7 @@ def build_url(username: str) -> str:
     return BRIDGE_URL.format(username=username)
 
 async def send_post(post: dict):
+    log.info(f"Отправка поста: {post['title'][:30]}...")
     text = f"<b>{post['title']}</b>\n\n{post['content']}\n\n<a href='{post['url']}'>Источник</a>"
     media_urls = post['media'][:10]
     if not media_urls:
