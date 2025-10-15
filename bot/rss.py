@@ -26,10 +26,13 @@ def extract_media(content: str) -> List[str]:
 def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
     feed = feedparser.parse(feed_url)
     posts = []
-    for entry in reversed(feed.entries):
+    found_last = False
+
+    # Идём от новых к старым (как в ленте)
+    for entry in feed.entries:
         if entry.id == last_id:
-            break
-        # Atom-лента: контент лежит в entry.content
+            break  # достигли последнего отправленного — остальное не нужно
+        # Извлекаем данные
         content_raw = entry.get('content', entry.get('summary', ''))
         if isinstance(content_raw, list) and content_raw:
             content = content_raw[0].get('value', '')
@@ -41,4 +44,5 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
             'url': entry.id,
             'media': extract_media(content)
         })
+    # Теперь posts = [новый, ..., последний_новый_после_last_id]
     return posts

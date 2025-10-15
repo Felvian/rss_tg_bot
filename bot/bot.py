@@ -25,10 +25,12 @@ async def periodic_job():
             for fid, username in list_feeds().items():
                 url = build_url(username)
                 last_id = get_last_id(url)
-                posts = get_new_posts(url, last_id)
+                posts = get_new_posts(url, last_id)  # уже в правильном порядке: новые первыми
                 for post in posts:
                     await send_post(post)
-                    save_last_id(url, post['url'])
+                    await asyncio.sleep(1.2)
+                if posts:
+                    save_last_id(url, posts[0]['url'])  # самый свежий — первый в списке
             log.info("Проверка завершена.")
         except Exception as e:
             log.exception("Ошибка в периодической задаче: %s", e)
