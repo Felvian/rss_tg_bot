@@ -1,26 +1,40 @@
 import feedparser, re
 from typing import List, Dict
 
+IMG_RE = re.compile(r'<img[^>]+src=["\'](.*?)["\']', re.I)
+VIDEO_RE = re.compile(r'<video[^>]+src=["\'](.*?)["\']', re.I)
+# для тега <source src="…mp4"> внутри <video>
+SOURCE_RE = re.compile(r'<source[^>]+src=["\'](.*?\.)mp4["\']', re.I)
+
 def clean_html(raw: str) -> str:
     return re.sub(r'<.*?>', '', raw)
 
 def extract_media(content: str) -> List[str]:
+    """Вернуть список прямых URL картинок и видео."""
     urls = []
-    urls += re.findall(r'<img[^>]+src="([^">]+)"', content)
-    urls += re.findall(r'<video[^>]+src="([^">]+)"', content)
-    return urls
+    urls.extend(IMG_RE.findall(content))
+    urls.extend(VIDEO_RE.findall(content))
+    urls.extend(SOURCE_RE.findall(content))
+    # убираем дубликаты, сохраняя порядок
+    seen, out = set(), []
+    for u in urls:
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
 
 def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
     feed = feedparser.parse(feed_url)
-    print(feed)
     posts = []
     for entry in reversed(feed.entries):
         if entry.id == last_id:
             break
+        # Atom-лента: контент лежит в entry.content
+        content = entry.get('content', '')
         posts.append({
             'title': entry.title,
-            'content': clean_html(entry.content_html)[:500] + '…',
+            'content': clean_html(content)[:500] + '…',
             'url': entry.id,
-            'media': extract_media(entry.content_html)
+            'media': extract_media(content)
         })
     return posts
