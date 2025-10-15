@@ -11,6 +11,10 @@ log.addHandler(handler)
 async def tick():
     log.info("TICK %s", datetime.now())
 
+def plain_timer():
+    log.info("plain-timer tick")
+    asyncio.get_event_loop().call_later(10, plain_timer)
+
 @crontab("* * * * * */10", start=False)   # каждые 10 секунд
 async def every_10s():
     try:
@@ -20,4 +24,5 @@ async def every_10s():
 
 def start():
     every_10s.start()
+    plain_timer() 
     log.info("test-cron started")
