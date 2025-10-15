@@ -118,7 +118,7 @@ async def rm(m: types.Message):
     ok = remove_feed(args[1])
     await m.answer("✅ Удалено." if ok else "❌ ID не найден.")
 
-@crontab('*/5 * * * *', start=False)   # start=False → сами запустим
+@crontab('* * * * */5', start=False)   # start=False → сами запустим
 async def job():
     log.info("cron job tick")
     for fid, username in list_feeds().items():
