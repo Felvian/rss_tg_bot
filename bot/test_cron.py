@@ -15,7 +15,7 @@ def plain_timer():
     log.info("plain-timer tick")
     asyncio.get_event_loop().call_later(10, plain_timer)
 
-@crontab("* * * * * */10", start=False)   # каждые 10 секунд
+@crontab("*/1 * * * * ", start=False)   # каждые 10 секунд
 async def every_10s():
     try:
         await tick()
