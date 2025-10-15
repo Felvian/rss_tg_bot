@@ -18,6 +18,23 @@ dp = Dispatcher()
 
 LAST_FILE = '/app/data/last_ids.json'
 
+async def periodic_job():
+    while True:
+        try:
+            log.info("Запуск проверки RSS-лент...")
+            for fid, username in list_feeds().items():
+                url = build_url(username)
+                last_id = get_last_id(url)
+                posts = get_new_posts(url, last_id)
+                for post in posts:
+                    await send_post(post)
+                    save_last_id(url, post['url'])
+            log.info("Проверка завершена.")
+        except Exception as e:
+            log.exception("Ошибка в периодической задаче: %s", e)
+        # Ждём 5 минут = 300 секунд
+        await asyncio.sleep(300)
+
 def get_last_id(url: str) -> str | None:
     try:
         return json.load(open(LAST_FILE)).get(url)
@@ -129,14 +146,13 @@ async def job():
             save_last_id(url, post['url'])
 
 async def main():
-    start_test_cron()          # <— запустим тестовый cron
-    job.start()                # ваш основной cron
-    log.info("bot + test-cron started")
+    asyncio.create_task(periodic_job())
+
+    log.info("Бот запущен. Фоновая задача RSS активна.")
     try:
         await dp.start_polling(bot)
-    finally:
-        job.stop()
-        every_10s.stop()
+    except KeyboardInterrupt:
+        log.info("Остановка бота...")
 
 if __name__ == '__main__':
     asyncio.run(main())
