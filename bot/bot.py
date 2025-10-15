@@ -113,7 +113,7 @@ async def add(m: types.Message):
     posts = get_new_posts(url, None)
     print(posts)          # None = берём всю ленту
     if posts:
-        last = posts[-1]                      # самый свежий
+        last = posts[0]                      # самый свежий
         await send_post(last)                 # отправляем
         save_last_id(url, last['url'])        # запоминаем, чтобы не повторять
     else:
