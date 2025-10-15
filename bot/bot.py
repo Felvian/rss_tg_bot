@@ -114,18 +114,23 @@ async def rm(m: types.Message):
     ok = remove_feed(args[1])
     await m.answer("✅ Удалено." if ok else "❌ ID не найден.")
 
-@crontab('*/5 * * * *')
-def job():
-    print('задача выполняется')
+@crontab('*/5 * * * *', start=False)   # start=False → сами запустим
+async def job():
+    print('⏰ cron job tick')
     for fid, username in list_feeds().items():
         url = build_url(username)
         last_id = get_last_id(url)
         for post in get_new_posts(url, last_id):
-            asyncio.create_task(send_post(post))
+            await send_post(post)          # теперь await
             save_last_id(url, post['url'])
 
 async def main():
-    await dp.start_polling(bot)
+    job.start()
+    try:
+        await dp.start_polling(bot)
+    finally:
+        job.stop()    
+    
 
 if __name__ == '__main__':
     asyncio.run(main())
