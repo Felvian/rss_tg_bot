@@ -8,6 +8,9 @@ from config import BOT_TOKEN, CHANNEL_ID, BRIDGE_URL
 from db import add_feed, remove_feed, list_feeds
 from rss import get_new_posts
 from download import download_file, delete_file
+from logger import get_logger   # если модуль лежит рядом
+
+log = get_logger("cron")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -116,7 +119,7 @@ async def rm(m: types.Message):
 
 @crontab('*/5 * * * *', start=False)   # start=False → сами запустим
 async def job():
-    print('⏰ cron job tick')
+    log.info("cron job tick")
     for fid, username in list_feeds().items():
         url = build_url(username)
         last_id = get_last_id(url)
@@ -126,6 +129,7 @@ async def job():
 
 async def main():
     job.start()
+    log.info("bot started, cron active")
     try:
         await dp.start_polling(bot)
     finally:
