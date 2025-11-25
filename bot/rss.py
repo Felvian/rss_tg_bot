@@ -6,8 +6,19 @@ VIDEO_RE = re.compile(r'<video[^>]+src=["\'](.*?)["\']', re.I)
 # для тега <source src="…mp4"> внутри <video>
 SOURCE_RE = re.compile(r'<source[^>]+src=["\'](.*?\.)mp4["\']', re.I)
 
+
+# Паттерн для поиска первого русского символа или слова
+RU_START = re.compile(r'[а-яА-ЯёЁ]')
+
 def clean_html(raw: str) -> str:
     return re.sub(r'<.*?>', '', raw)
+
+def remove_leading_english(text: str) -> str:
+    """Удаляет текст до первого русского символа включительно (начало русской части)."""
+    match = RU_START.search(text)
+    if match:
+        return text[match.start():]
+    return text  # если русских символов нет — возвращаем как есть
 
 def extract_media(content: str) -> List[str]:
     """Вернуть список прямых URL картинок и видео."""
@@ -40,9 +51,11 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
             content = content_raw[0].get('value', '')
         else:
             content = content_raw
+        clean_text = clean_html(content)
+        clean_text = remove_leading_english(clean_text)           
         posts.append({
             'title': entry.title,
-            'content': clean_html(content)[:500] + '…',
+            'content':  clean_text[:500] + ('…' if len(clean_text) > 500 else ''),
             'url': entry_id_clean,
             'media': extract_media(content)
         })
