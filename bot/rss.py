@@ -5,26 +5,29 @@ IMG_RE = re.compile(r'<img[^>]+src=["\'](.*?)["\']', re.I)
 VIDEO_RE = re.compile(r'<video[^>]+src=["\'](.*?)["\']', re.I)
 SOURCE_RE = re.compile(r'<source[^>]+src=["\'](.*?\.)mp4["\']', re.I)
 
-# Убираем типичные Telegram-заглушки в начале
-TELEGRAM_STUB_RE = re.compile(
-    r'^\s*Please open Telegram to view this post\s+VIEW IN TELEGRAM\s*',
-    re.IGNORECASE | re.MULTILINE
-)
-
-RU_START = re.compile(r'[а-яА-ЯёЁ]')
-
 def clean_html(raw: str) -> str:
-    return re.sub(r'<.*?>', '', raw)
+    # Удаляем HTML-теги
+    text = re.sub(r'<.*?>', '', raw)
+    # Заменяем остатки HTML-сущностей на нормальные символы
+    text = re.sub(r'&nbsp;|\xa0', ' ', text)
+    # Нормализуем пробелы
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
 
-def remove_leading_noise(text: str) -> str:
-    # Шаг 1: Удалить Telegram-заглушку
-    text = TELEGRAM_STUB_RE.sub('', text)
-    
-    # Шаг 2: Найти первый русский символ и обрезать до него
-    match = RU_START.search(text)
-    if match:
-        return text[match.start():]
-    return text.strip()  # если русского нет — вернём как есть, но без пробелов
+def remove_telegram_stub_and_leading_english(text: str) -> str:
+    # Гибкое удаление Telegram-заглушки (с любыми пробелами и регистром)
+    # Ищем начало строки с возможными пробелами → фразу → любые пробелы → эмодзи или русский текст
+    telegram_pattern = re.compile(
+        r'^\s*Please open Telegram to view this post\s+VIEW IN TELEGRAM\s*',
+        re.IGNORECASE | re.UNICODE
+    )
+    text = telegram_pattern.sub('', text)
+
+    # Теперь ищем первый русский символ и обрезаем до него
+    ru_match = re.search(r'[а-яА-ЯёЁ]', text)
+    if ru_match:
+        return text[ru_match.start():]
+    return text  # если русского нет — оставляем как есть
 
 def extract_media(content: str) -> List[str]:
     urls = []
@@ -54,14 +57,17 @@ def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
         else:
             content = content_raw
 
+        # Очищаем HTML и нормализуем пробелы
         clean_text = clean_html(content)
-        clean_text = remove_leading_noise(clean_text)
+
+        # Удаляем Telegram-заглушку и английский префикс
+        clean_text = remove_telegram_stub_and_leading_english(clean_text)
 
         posts.append({
             'title': entry.title,
             'content': clean_text[:500] + ('…' if len(clean_text) > 500 else ''),
             'url': getattr(entry, 'link', entry_id_clean),
-            'media': extract_media(content)
+            'media': extract_media(content)  # исходный content с HTML — для извлечения медиа
         })
 
     return posts
