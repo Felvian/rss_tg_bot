@@ -1,5 +1,7 @@
-import feedparser, re
+import feedparser, re, logging
 from typing import List, Dict
+
+log = logging.getLogger(__name__)
 
 IMG_RE = re.compile(r'<img[^>]+src=["\'](.*?)["\']', re.I)
 VIDEO_RE = re.compile(r'<video[^>]+src=["\'](.*?)["\']', re.I)
@@ -42,7 +44,12 @@ def extract_media(content: str) -> List[str]:
     return out
 
 def get_new_posts(feed_url: str, last_id: str) -> List[Dict]:
-    feed = feedparser.parse(feed_url)
+    try:
+        feed = feedparser.parse(feed_url)
+    except Exception as e:
+        log.error(f"Ошибка при парсинге RSS {feed_url}: {e}")
+        return []
+    
     posts = []
     last_id_clean = last_id.strip() if last_id else None
 
