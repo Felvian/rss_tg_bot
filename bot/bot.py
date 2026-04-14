@@ -41,8 +41,8 @@ async def periodic_job():
             log.info("Проверка завершена.")
         except Exception as e:
             log.exception("Ошибка в периодической задаче: %s", e)
-        # Ждём 5 минут = 300 секунд
-        await asyncio.sleep(300)
+        # Ждём 30 минут = 1800 секунд (чтобы избежать блокировки со стороны Telegram)
+        await asyncio.sleep(1800)
 
 def get_last_id(url: str) -> str | None:
     try:
@@ -146,7 +146,7 @@ async def rm(m: types.Message):
     ok = remove_feed(args[1])
     await m.answer("✅ Удалено." if ok else "❌ ID не найден.")
 
-@crontab('*/5 * * * *', start=False)   # start=False → сами запустим
+@crontab('*/30 * * * *', start=False)   # start=False → сами запустим (каждые 30 минут)
 async def job():
     log.info("cron job tick")
     for fid, username in list_feeds().items():
